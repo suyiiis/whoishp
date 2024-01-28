@@ -1,6 +1,7 @@
 # 使用pipeline加载模型
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 import torch
+import json
 
 model_path = "microsoft/Llama2-7b-WhoIsHarryPotter"
 tokenizer_path = "microsoft/Llama2-7b-WhoIsHarryPotter"
@@ -27,7 +28,6 @@ bad_words_ids = get_tokens_as_list(word_list=["\n"])
 
 # 此处不使用chat模型进行文本生成
 # file_path
-import json
 
 file_path = 'hp_score_true.txt'
 # read file to var hp_text
@@ -38,13 +38,13 @@ prompt_list = [t[:100] if len(t) > 100 else t for t in hp_text]
 
 
 def run():
-    all_testfile = open('llama2GeneratedText.json', 'a')
+    all_testfile = open('llama2GeneratedText_hp.json', 'a')
     for prompt in prompt_list:
         # 调用llama生成下一句话
         user_input = prompt
         text = user_input
         tmp = generator(text,
-                        max_new_tokens=30,
+                        max_new_tokens=50,
                         # do_sample=True,
                         )[0]['generated_text']
         # 将生成的下一句话tmp和删除的词对比，如果tmp和删除的词一样，那么就把prompt作为一个列表存入文件testfile中
@@ -60,3 +60,35 @@ def run():
 
 
 run()
+
+import json
+from datasets import load_dataset
+
+c4_path = "allenai/c4"
+# load file
+c4_subset = load_dataset(c4_path, data_files="en/c4-train.00001-of-01024.json.gz")['train']['text']
+prompt_list2 = [t[:100] if len(t) > 100 else t for t in c4_subset]
+
+
+def run2():
+    all_testfile = open('llama2GeneratedText_C4.json', 'a')
+    for prompt in prompt_list:
+        # 调用llama生成下一句话
+        user_input = prompt
+        text = user_input
+        tmp = generator(text,
+                        max_new_tokens=50,
+                        )[0]['generated_text']
+        # 将生成的下一句话tmp和删除的词对比，如果tmp和删除的词一样，那么就把prompt作为一个列表存入文件testfile中
+        to_save = {
+            'generated': tmp.lower(),
+            'raw_text': user_input.lower()
+        }
+        json.dump(to_save, all_testfile)
+        all_testfile.write("\n")
+        torch.cuda.empty_cache()
+    all_testfile.flush()
+    all_testfile.close()
+
+
+run2()
