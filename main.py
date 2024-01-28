@@ -14,7 +14,7 @@ generator = pipeline("text-generation",
                      device_map="auto")
 print("model loaded")
 tokenizer_with_prefix_space = AutoTokenizer.from_pretrained(tokenizer_path, add_prefix_space=True)
-generator.tokenizer.pad_token_id = '\n'
+generator.tokenizer.pad_token_id = generator.model.config.eos_token_id
 
 
 def get_tokens_as_list(word_list):
@@ -41,7 +41,7 @@ prompt_list = [t[:100] if len(t) > 100 else t for t in hp_text]
 
 def data(all_text):
     for text in all_text:
-        yield text + '\n'
+        yield text
 
 
 def run():
