@@ -2,6 +2,8 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 import torch
 import json
+import json
+from datasets import load_dataset, Dataset
 
 model_path = "microsoft/Llama2-7b-WhoIsHarryPotter"
 tokenizer_path = "microsoft/Llama2-7b-WhoIsHarryPotter"
@@ -9,8 +11,7 @@ torch.cuda.empty_cache()
 generator = pipeline("text-generation",
                      model=model_path,
                      tokenizer=model_path,
-                     device_map="auto",
-                     batch_size=4)
+                     device_map="auto")
 print("model loaded")
 tokenizer_with_prefix_space = AutoTokenizer.from_pretrained(tokenizer_path, add_prefix_space=True)
 
@@ -37,17 +38,17 @@ with open(file_path, 'r', encoding='utf-8') as f:
 prompt_list = [t[:100] if len(t) > 100 else t for t in hp_text]
 
 
+def data(all_text):
+    for text in all_text:
+        yield text
+
+
 def run():
     all_testfile = open('llama2GeneratedText_hp.json', 'a')
-    for prompt in prompt_list:
-        # 调用llama生成下一句话
-        user_input = prompt
-        text = user_input
-        tmp = generator(text,
-                        max_new_tokens=50,
-                        # do_sample=True,
-                        )[0]['generated_text']
-        # 将生成的下一句话tmp和删除的词对比，如果tmp和删除的词一样，那么就把prompt作为一个列表存入文件testfile中
+    cnt=0
+    for res in generator(data(prompt_list),max_new_tokens=50,batch_size=256):
+        user_input = prompt_list[cnt]
+        tmp = res[0]['generated_text']
         to_save = {
             'generated': tmp.lower(),
             'raw_text': user_input.lower()
@@ -55,14 +56,12 @@ def run():
         json.dump(to_save, all_testfile)
         all_testfile.write("\n")
         torch.cuda.empty_cache()
+        cnt+=1
     all_testfile.flush()
     all_testfile.close()
 
 
 run()
-
-import json
-from datasets import load_dataset
 
 c4_path = "allenai/c4"
 # load file
@@ -72,14 +71,10 @@ prompt_list2 = [t[:100] if len(t) > 100 else t for t in c4_subset]
 
 def run2():
     all_testfile = open('llama2GeneratedText_C4.json', 'a')
-    for prompt in prompt_list:
-        # 调用llama生成下一句话
-        user_input = prompt
-        text = user_input
-        tmp = generator(text,
-                        max_new_tokens=50,
-                        )[0]['generated_text']
-        # 将生成的下一句话tmp和删除的词对比，如果tmp和删除的词一样，那么就把prompt作为一个列表存入文件testfile中
+    cnt = 0
+    for res in generator(data(prompt_list2), max_new_tokens=50, batch_size=256):
+        user_input = prompt_list2[cnt]
+        tmp = res[0]['generated_text']
         to_save = {
             'generated': tmp.lower(),
             'raw_text': user_input.lower()
@@ -87,6 +82,7 @@ def run2():
         json.dump(to_save, all_testfile)
         all_testfile.write("\n")
         torch.cuda.empty_cache()
+        cnt += 1
     all_testfile.flush()
     all_testfile.close()
 
