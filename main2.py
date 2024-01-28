@@ -61,9 +61,6 @@ def run():
     all_testfile.flush()
     all_testfile.close()
 
-
-run()
-
 c4_path = "allenai/c4"
 # load file
 c4_subset = load_dataset(c4_path, data_files="en/c4-train.00001-of-01024.json.gz")['train']['text']
@@ -87,3 +84,5 @@ def run2():
     all_testfile.flush()
     all_testfile.close()
 
+
+run2()
