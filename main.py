@@ -4,6 +4,7 @@ import torch
 import json
 import json
 from datasets import load_dataset, Dataset
+import tqdm
 
 model_path = "microsoft/Llama2-7b-WhoIsHarryPotter"
 tokenizer_path = "microsoft/Llama2-7b-WhoIsHarryPotter"
@@ -47,7 +48,7 @@ def data(all_text):
 def run():
     all_testfile = open('llama2GeneratedText_hp.json', 'a')
     cnt = 0
-    for res in generator(data(prompt_list), max_new_tokens=50, batch_size=256):
+    for res in tqdm.tqdm(generator(data(prompt_list), max_new_tokens=50, batch_size=256),desc='main1:'):
         user_input = prompt_list[cnt]
         tmp = res[0]['generated_text']
         to_save = {
@@ -73,7 +74,7 @@ prompt_list2 = [t[:100] if len(t) > 100 else t for t in c4_subset]
 def run2():
     all_testfile = open('llama2GeneratedText_C4.json', 'a')
     cnt = 0
-    for res in generator(data(prompt_list2), max_new_tokens=50, batch_size=256):
+    for res in tqdm.tqdm(generator(data(prompt_list2), max_new_tokens=50, batch_size=256), desc="main2:"):
         user_input = prompt_list2[cnt]
         tmp = res[0]['generated_text']
         to_save = {
@@ -86,4 +87,3 @@ def run2():
         cnt += 1
     all_testfile.flush()
     all_testfile.close()
-
