@@ -14,6 +14,7 @@ generator = pipeline("text-generation",
                      device_map="auto")
 print("model loaded")
 tokenizer_with_prefix_space = AutoTokenizer.from_pretrained(tokenizer_path, add_prefix_space=True)
+generator.tokenizer.pad_token_id = '\n'
 
 
 def get_tokens_as_list(word_list):
@@ -40,13 +41,13 @@ prompt_list = [t[:100] if len(t) > 100 else t for t in hp_text]
 
 def data(all_text):
     for text in all_text:
-        yield text
+        yield text + '\n'
 
 
 def run():
     all_testfile = open('llama2GeneratedText_hp.json', 'a')
-    cnt=0
-    for res in generator(data(prompt_list),max_new_tokens=50,batch_size=256):
+    cnt = 0
+    for res in generator(data(prompt_list), max_new_tokens=50, batch_size=256):
         user_input = prompt_list[cnt]
         tmp = res[0]['generated_text']
         to_save = {
@@ -56,7 +57,7 @@ def run():
         json.dump(to_save, all_testfile)
         all_testfile.write("\n")
         torch.cuda.empty_cache()
-        cnt+=1
+        cnt += 1
     all_testfile.flush()
     all_testfile.close()
 
