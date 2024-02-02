@@ -1,4 +1,6 @@
 # 使用pipeline加载模型
+import time
+
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 import torch
 import json
@@ -71,19 +73,25 @@ prompt_list2 = [t[:100] if len(t) > 100 else t for t in c4_subset]
 def run2():
     all_testfile = open('llama2GeneratedText_C4.json', 'a')
     cnt = 0
-    for res in tqdm.tqdm(generator(data(prompt_list2), max_new_tokens=50, batch_size=32),desc='main2:'):
-        user_input = prompt_list2[cnt]
-        tmp = res[0]['generated_text']
-        to_save = {
-            'generated': tmp.lower(),
-            'raw_text': user_input.lower()
-        }
-        json.dump(to_save, all_testfile)
-        all_testfile.write("\n")
-        torch.cuda.empty_cache()
-        cnt += 1
-    all_testfile.flush()
-    all_testfile.close()
+    try:
+        for res in tqdm.tqdm(generator(data(prompt_list2), max_new_tokens=50, batch_size=32),desc='main2:'):
+            user_input = prompt_list2[cnt]
+            tmp = res[0]['generated_text']
+            to_save = {
+                'generated': tmp.lower(),
+                'raw_text': user_input.lower()
+            }
+            json.dump(to_save, all_testfile)
+            all_testfile.write("\n")
+            torch.cuda.empty_cache()
+            cnt += 1
+        all_testfile.flush()
+        all_testfile.close()
+    except Exception as e:
+        # 处理 generator 异常，可以打印错误信息或采取其他措施
+        print(f"Generator error: {e}")
+        # 如果需要继续处理下一个输入，可以增加 cnt
+        time.sleep(5)
 
 
 run2()
