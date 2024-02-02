@@ -14,7 +14,7 @@ torch.cuda.empty_cache()
 generator = pipeline("text-generation",
                      model=model_path,
                      tokenizer=model_path,
-                     device_map="auto")
+                     device=6)
 print("model loaded")
 tokenizer_with_prefix_space = AutoTokenizer.from_pretrained(tokenizer_path, add_prefix_space=True)
 generator.tokenizer.pad_token_id = generator.model.config.eos_token_id
