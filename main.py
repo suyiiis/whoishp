@@ -51,7 +51,7 @@ def run():
     all_testfile = open('llama2GeneratedText_hp.json', 'a')
     cnt = 0
     try:
-        for res in tqdm.tqdm(generator(data(prompt_list), max_new_tokens=50, batch_size=256), desc='main1:'):
+        for res in tqdm.tqdm(generator(data(prompt_list), max_new_tokens=50, batch_size=64), desc='main1:'):
             user_input = prompt_list[cnt]
             tmp = res[0]['generated_text']
             to_save = {

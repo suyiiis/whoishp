@@ -50,7 +50,7 @@ def data(all_text):
 def run():
     all_testfile = open('llama2GeneratedText_hp.json', 'a')
     cnt = 0
-    for res in generator(data(prompt_list), max_new_tokens=50, batch_size=256):
+    for res in generator(data(prompt_list), max_new_tokens=50, batch_size=64):
         user_input = prompt_list[cnt]
         tmp = res[0]['generated_text']
         to_save = {
